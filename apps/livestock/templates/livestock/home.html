@@ -1,0 +1,314 @@
+{% extends 'livestock/base.html' %}
+
+{% block title %}Dashboard - Kisombwa Ranch{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="hero-banner">
+    <div class="hero-content">
+        <div class="hero-date">
+            <i class="bi bi-calendar3"></i>
+            <span>{% now "l, F j, Y" %}</span>
+        </div>
+        <h1 class="hero-title">Good {% now "A" %}, Manager</h1>
+        <p class="hero-subtitle">Your ranch is running smoothly. {{ vaccinations_due }} items need your attention today.</p>
+        <div class="hero-location">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Mubende District, Uganda • 2,400 hectares</span>
+        </div>
+    </div>
+    
+    <div class="hero-weather">
+        <div class="weather-item">
+            <i class="bi bi-sun weather-icon"></i>
+            <div class="weather-info">
+                <p>28°C</p>
+                <span>Partly Cloudy</span>
+            </div>
+        </div>
+        <div class="weather-item">
+            <i class="bi bi-droplet weather-icon"></i>
+            <div class="weather-info">
+                <p>65%</p>
+                <span>Humidity</span>
+            </div>
+        </div>
+    </div>
+    
+   <div class="hero-actions">
+    <button class="btn-hero secondary">View Reports</button>
+    <a href="{% url 'qr_scanner' %}" class="btn-hero primary">Quick Scan</a>
+</div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <!-- Total Livestock -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ total_animals }}</div>
+                <div class="stat-change" style="color: {% if livestock_growth >= 0 %}var(--primary-green){% else %}#ef4444{% endif %}">
+                    <i class="bi bi-arrow-{% if livestock_growth >= 0 %}up{% else %}down{% endif %}"></i> {{ livestock_growth|floatformat:1 }}%
+                </div>
+                <div class="stat-label">Total Livestock</div>
+                <div class="stat-subtitle">Across all categories</div>
+            </div>
+            <div class="stat-icon green">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Healthy Animals -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ healthy_animals }}</div>
+                <div class="stat-change" style="color: {% if health_growth >= 0 %}var(--primary-green){% else %}#ef4444{% endif %}">
+                    <i class="bi bi-arrow-{% if health_growth >= 0 %}up{% else %}down{% endif %}"></i> {{ health_growth|floatformat:1 }}%
+                </div>
+                <div class="stat-label">Healthy Animals</div>
+                <div class="stat-subtitle">{{ health_percentage }}% of total herd</div>
+            </div>
+            <div class="stat-icon green">
+                <i class="bi bi-heart-fill"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Alerts -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ active_alerts }}</div>
+                <div class="stat-label">Active Alerts</div>
+                <div class="stat-subtitle">{{ high_priority_alerts }} high priority</div>
+            </div>
+            <div class="stat-icon orange">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vaccinations Due -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ vaccinations_due }}</div>
+                <div class="stat-label">Vaccinations Due</div>
+                <div class="stat-subtitle">This week</div>
+            </div>
+            <div class="stat-icon blue">
+                <i class="bi bi-pen-fill"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Metrics Row -->
+<div class="row" style="margin: 2rem 0;">
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-thermometer-half" style="font-size: 1.5rem; color: var(--primary-green);"></i>
+                        <h6 style="margin: 0; color: #6b7280; font-weight: 600;">Avg Body Temp</h6>
+                    </div>
+                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ avg_body_temp }}°C</h2>
+                </div>
+                <span class="badge-green">{{ temp_status }}</span>
+            </div>
+            <div class="progress-modern mb-2">
+                <div class="progress-bar-modern" style="width: {{ temp_percentage }}%"></div>
+            </div>
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">{{ temp_percentage }}% within normal range (37.5-39.5°C)</p>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-graph-up-arrow" style="font-size: 1.5rem; color: var(--primary-green);"></i>
+                        <h6 style="margin: 0; color: #6b7280; font-weight: 600;">Daily Weight Gain</h6>
+                    </div>
+                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ avg_weight_gain }} kg</h2>
+                </div>
+                <span class="badge-green">+{{ weight_gain_percentage }}%</span>
+            </div>
+            <div class="progress-modern mb-2">
+                <div class="progress-bar-modern" style="width: 85%"></div>
+            </div>
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">Exceeding target of 0.75 kg/day</p>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-shield-fill-check" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                        <h6 style="margin: 0; color: #6b7280; font-weight: 600;">Vaccination Rate</h6>
+                    </div>
+                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ vaccination_rate }}%</h2>
+                </div>
+                <span class="badge-blue">{% if vaccination_rate >= 95 %}Expert Ready{% else %}In Progress{% endif %}</span>
+            </div>
+            <div class="progress-modern mb-2">
+                <div class="progress-bar-modern" style="width: {{ vaccination_rate }}%; background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);"></div>
+            </div>
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">{{ animals_pending_vaccination }} animals pending vaccination</p>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Upcoming Tasks -->
+        <div class="content-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="card-title">
+                            <i class="bi bi-clock-history" style="color: var(--primary-green);"></i>
+                            Upcoming Tasks
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            
+            {% if upcoming_vaccinations %}
+            <div class="d-flex flex-column gap-3">
+                {% for vac in upcoming_vaccinations %}
+                <div class="d-flex align-items-center justify-content-between p-3" style="background: #f9fafb; border-radius: 0.75rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></div>
+                        <div>
+                            <p style="margin: 0; font-weight: 600; color: #111827;">Vaccinate {{ vac.animal.tag_id }}</p>
+                            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">{{ vac.vaccine_name }} - Due: {{ vac.next_due_date|date:"M j, Y" }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'vaccination_add_for_animal' vac.animal.tag_id %}" class="badge-green" style="text-decoration: none; cursor: pointer;">
+                        <i class="bi bi-check-circle"></i> Record
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: #9ca3af;">
+                <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p style="margin-top: 1rem;">No upcoming vaccinations. All animals are up to date!</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Herd Overview -->
+        <div class="content-card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 class="card-title">Herd Overview</h3>
+                <p class="card-subtitle">Breed Distribution</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    {% if breed_distribution %}
+                    {% for breed in breed_distribution %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span style="font-weight: 600; font-size: 0.875rem;">{{ breed.breed }}</span>
+                            <span style="color: #6b7280; font-size: 0.875rem;">
+                                {{ breed.count }} ({% if total_animals > 0 %}{% widthratio breed.count total_animals 100 %}{% else %}0{% endif %}%)
+                            </span>
+                        </div>
+                        <div class="progress-modern">
+                            <div class="progress-bar-modern" style="width: {% if total_animals > 0 %}{% widthratio breed.count total_animals 100 %}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p style="text-align: center; color: #9ca3af; padding: 2rem;">No breed data available yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3 class="card-title">Quick Actions</h3>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-6">
+                    <a href="{% url 'animal_register' %}" class="action-button">
+                        <div class="action-icon green">
+                            <i class="bi bi-plus-lg"></i>
+                        </div>
+                        <div class="action-label">Register Animal</div>
+                        <div class="action-sublabel">Add new livestock</div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'qr_scanner' %}" class="action-button">
+                        <div class="action-icon orange">
+                            <i class="bi bi-qr-code-scan"></i>
+                        </div>
+                        <div class="action-label">Scan QR Code</div>
+                        <div class="action-sublabel">Quick lookup</div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'health_record_add' %}" class="action-button">
+                        <div class="action-icon green">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <div class="action-label">Health Check</div>
+                        <div class="action-sublabel">Record health</div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'vaccination_add' %}" class="action-button">
+                        <div class="action-icon orange">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="action-label">Vaccination</div>
+                        <div class="action-sublabel">Update records</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Animals -->
+        <div class="content-card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 class="card-title">Recently Added</h3>
+            </div>
+            
+            {% if recent_animals %}
+            {% for animal in recent_animals %}
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom" style="border-color: #f3f4f6 !important;">
+                <div>
+                    <p style="margin: 0; font-weight: 600; color: #111827;">{{ animal.tag_id }}</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: #6b7280;">{{ animal.get_breed_display }} • {{ animal.age_display }}</p>
+                </div>
+                <a href="{% url 'animal_profile' animal.tag_id %}" class="badge-green" style="text-decoration: none; cursor: pointer;">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="text-align: center; color: #9ca3af; padding: 2rem;">No animals registered yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

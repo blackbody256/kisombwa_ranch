@@ -1,0 +1,67 @@
+{% extends 'livestock/base.html' %}
+
+{% block title %}All Animals{% endblock %}
+
+{% block content %}
+<h2><i class="bi bi-list-ul"></i> All Animals</h2>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search by tag ID, name, or breed" 
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active</option>
+                    <option value="SOLD" {% if status_filter == 'SOLD' %}selected{% endif %}>Sold</option>
+                    <option value="DECEASED" {% if status_filter == 'DECEASED' %}selected{% endif %}>Deceased</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Tag ID</th>
+                <th>Name</th>
+                <th>Breed</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for animal in animals %}
+            <tr>
+                <td><strong>{{ animal.tag_id }}</strong></td>
+                <td>{{ animal.name|default:"—" }}</td>
+                <td>{{ animal.get_breed_display }}</td>
+                <td>{{ animal.get_gender_display }}</td>
+                <td>{{ animal.age_display }}</td>
+                <td><span class="badge bg-primary">{{ animal.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'animal_profile' animal.tag_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No animals found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

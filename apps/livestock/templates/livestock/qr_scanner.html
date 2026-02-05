@@ -1,0 +1,98 @@
+{% extends 'livestock/base.html' %}
+
+{% block title %}QR Scanner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h2 class="mb-4">
+            <i class="bi bi-qr-code-scan"></i> QR Code Scanner
+        </h2>
+
+        <!-- Camera View -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <video id="qr-video" width="100%" style="max-width: 500px; border: 2px solid #ddd;"></video>
+                <div id="qr-result" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Manual Entry -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Or Enter Tag ID Manually</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="input-group mb-3">
+                        {{ form.tag_id }}
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                    {% if form.tag_id.errors %}
+                        <div class="alert alert-danger">{{ form.tag_id.errors }}</div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- QR Code Scanner Library -->
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+
+<script>
+    const video = document.getElementById('qr-video');
+    const resultDiv = document.getElementById('qr-result');
+    const tagInput = document.getElementById('tag_id_input');
+    
+    // Access camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(stream) {
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            requestAnimationFrame(tick);
+        })
+        .catch(function(err) {
+            resultDiv.innerHTML = '<div class="alert alert-warning">Camera access denied or not available. Please use manual entry.</div>';
+            console.error(err);
+        });
+    
+    const canvas = document.createElement('canvas');
+    const canvasContext = canvas.getContext('2d');
+    
+    function tick() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                // QR code detected!
+                const tagId = code.data;
+                resultDiv.innerHTML = `<div class="alert alert-success">
+                    <strong>Scanned:</strong> ${tagId}<br>
+                    Redirecting...
+                </div>`;
+                
+                // Auto-fill form and submit
+                tagInput.value = tagId;
+                setTimeout(() => {
+                    tagInput.form.submit();
+                }, 1000);
+                
+                return; // Stop scanning
+            }
+        }
+        requestAnimationFrame(tick);
+    }
+</script>
+{% endblock %}

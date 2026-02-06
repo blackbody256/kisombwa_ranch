@@ -8,7 +8,8 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/livestock/', permanent=False)),  # Add this line
     path('admin/', admin.site.urls),
     path('livestock/', include('apps.livestock.urls')),
-    # Add other app URLs here later (iot, analytics, alerts)
+    path('api/iot/', include('apps.iot.urls')),
+    path('', include('apps.core.urls')),
 ]
 
 # Serve media files in development

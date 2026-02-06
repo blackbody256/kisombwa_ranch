@@ -2,4 +2,6 @@ from django.apps import AppConfig
 
 
 class LivestockConfig(AppConfig):
-    name = 'livestock'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.livestock'
+    label = 'livestock'

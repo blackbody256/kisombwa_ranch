@@ -43,10 +43,11 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.livestock',
     'apps.iot',
-    'apps.analytics'
+    'apps.analytics',
     'apps.alerts'
     
 ]
+AUTH_USER_MODEL = 'core.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -63,7 +64,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

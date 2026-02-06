@@ -1,0 +1,227 @@
+{% extends 'livestock/base.html' %}
+
+{% block title %}{{ animal.tag_id }} Profile{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>
+            <i class="bi bi-card-heading"></i> {{ animal.tag_id }}
+            {% if animal.name %}— {{ animal.name }}{% endif %}
+        </h1>
+        <p class="lead">
+    <span class="badge bg-primary">{{ animal.get_breed_display }}</span>
+    <span class="badge bg-{% if animal.gender == 'M' %}info{% else %}success{% endif %}">
+        {{ animal.get_gender_display }}
+    </span>
+    <span class="badge bg-secondary">{{ animal.get_status_display }}</span>
+</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if animal.qr_code %}
+            <img src="{{ animal.qr_code.url }}" alt="QR Code" class="qr-code-img">
+        {% endif %}
+    </div>
+</div>
+
+<!-- Basic Info -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Basic Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Birth Date:</strong> {{ animal.birth_date }}</p>
+                <p><strong>Age:</strong> {{ animal.age_display }}</p>
+                <p><strong>Breed:</strong> {{ animal.get_breed_display }}</p>
+                <p><strong>Gender:</strong> {{ animal.get_gender_display }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Color/Markings:</strong> {{ animal.color|default:"—" }}</p>
+                <p><strong>Current Weight:</strong> {{ animal.current_weight|default:"—" }} kg</p>
+                <p><strong>Ranch ID:</strong> {{ animal.ranch_id }}</p>
+                <p><strong>Collar ID:</strong> {{ animal.collar_id|default:"Not assigned" }}</p>
+            </div>
+        </div>
+        
+        {% if animal.photo %}
+        <div class="mt-3">
+            <img src="{{ animal.photo.url }}" alt="{{ animal.tag_id }}" class="img-fluid" style="max-width: 400px;">
+        </div>
+        {% endif %}
+        
+        <div class="mt-3">
+            <strong>Parents:</strong><br>
+            <p>
+                <i class="bi bi-gender-male"></i> <strong>Sire:</strong> 
+                {% if animal.sire %}
+                    <a href="{% url 'animal_profile' animal.sire.tag_id %}">{{ animal.sire.tag_id }}</a>
+                {% else %}
+                    Unknown
+                {% endif %}
+                <br>
+                <i class="bi bi-gender-female"></i> <strong>Dam:</strong> 
+                {% if animal.dam %}
+                    <a href="{% url 'animal_profile' animal.dam.tag_id %}">{{ animal.dam.tag_id }}</a>
+                {% else %}
+                    Unknown
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mb-4">
+    <div class="col">
+        <a href="{% url 'health_record_add_for_animal' animal.tag_id %}" class="btn btn-warning">
+            <i class="bi bi-heart-pulse"></i> Add Health Record
+        </a>
+        <a href="{% url 'vaccination_add_for_animal' animal.tag_id %}" class="btn btn-info">
+            <i class="bi bi-shield-plus"></i> Add Vaccination
+        </a>
+        <a href="{% url 'weight_record_add_for_animal' animal.tag_id %}" class="btn btn-success">
+            <i class="bi bi-speedometer"></i> Record Weight
+        </a>
+    </div>
+</div>
+
+<!-- Health Records -->
+<div class="card mb-4">
+    <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Health History</h5>
+    </div>
+    <div class="card-body">
+        {% if health_records %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Diagnosis</th>
+                        <th>Treatment</th>
+                        <th>Severity</th>
+                        <th>Cost (UGX)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in health_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.diagnosis }}</td>
+                        <td>{{ record.treatment|truncatewords:10 }}</td>
+                        <td>
+                            <span class="badge bg-{{ record.severity|lower }}">
+                                {{ record.get_severity_display }}
+                            </span>
+                        </td>
+                        <td>{{ record.cost }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No health records yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Vaccinations -->
+<div class="card mb-4">
+    <div class="card-header bg-info">
+        <h5 class="mb-0"><i class="bi bi-shield-plus"></i> Vaccination History</h5>
+    </div>
+    <div class="card-body">
+        {% if vaccinations %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vaccine</th>
+                        <th>Disease</th>
+                        <th>Next Due</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vac in vaccinations %}
+                    <tr>
+                        <td>{{ vac.date_administered }}</td>
+                        <td>{{ vac.vaccine_name }}</td>
+                        <td>{{ vac.disease|default:"—" }}</td>
+                        <td>{{ vac.next_due_date }}</td>
+                        <td>
+                            {% if vac.is_due %}
+                                <span class="badge bg-danger">Due!</span>
+                            {% else %}
+                                <span class="badge bg-success">Up to date</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No vaccination records yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Weight History -->
+<div class="card mb-4">
+    <div class="card-header bg-success">
+        <h5 class="mb-0"><i class="bi bi-speedometer"></i> Weight History</h5>
+    </div>
+    <div class="card-body">
+        {% if weight_records %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Weight (kg)</th>
+                        <th>Measured By</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in weight_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td><strong>{{ record.weight }} kg</strong></td>
+                        <td>{{ record.measured_by|default:"—" }}</td>
+                        <td>{{ record.notes|default:"—"|truncatewords:5 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No weight records yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Offspring -->
+{% if offspring %}
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Offspring</h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            {% for child in offspring %}
+            <li class="list-group-item">
+                <a href="{% url 'animal_profile' child.tag_id %}">{{ child.tag_id }}</a>
+                — {{ child.get_gender_display }}, {{ child.age_display }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

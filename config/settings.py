@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'apps.livestock',
     'apps.iot',
     'apps.analytics',
-    'apps.alerts'
+    'apps.alerts',
     
 ]
 AUTH_USER_MODEL = 'core.User'
@@ -82,6 +82,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -92,7 +93,6 @@ DATABASES = {
         'PORT': config('DB_PORT', default='5432'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

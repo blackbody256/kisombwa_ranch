@@ -1,12 +1,7 @@
 from django.contrib import admin
-from .models import Animal, HealthRecord, Vaccination, WeightRecord
+from apps.core.models import Animal
+from .models import HealthRecord, Vaccination, WeightRecord
 
-@admin.register(Animal)
-class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['tag_id', 'name', 'breed', 'gender', 'birth_date', 'status', 'created_at']
-    list_filter = ['status', 'breed', 'gender']
-    search_fields = ['tag_id', 'name']
-    readonly_fields = ['qr_code', 'created_at', 'updated_at']
 
 @admin.register(HealthRecord)
 class HealthRecordAdmin(admin.ModelAdmin):

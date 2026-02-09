@@ -17,7 +17,7 @@ class RanchAdmin(admin.ModelAdmin):
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['tag_id', 'name', 'breed', 'gender', 'status', 'ranch']
+    list_display = ['tag_id', 'name', 'breed', 'gender', 'status', 'ranch_id']
     list_filter = ['breed', 'gender', 'status']
     search_fields = ['tag_id', 'name']
     readonly_fields = ['created_at', 'updated_at']

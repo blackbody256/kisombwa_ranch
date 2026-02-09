@@ -1,5 +1,6 @@
 from django import forms
-from .models import Animal, HealthRecord, Vaccination, WeightRecord
+from apps.core.models import Animal
+from .models import HealthRecord, Vaccination, WeightRecord
 
 class AnimalRegistrationForm(forms.ModelForm):
     """

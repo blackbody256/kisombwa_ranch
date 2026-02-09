@@ -67,11 +67,11 @@ class Command(BaseCommand):
         
         # Create 20 animals
         breeds = ['Boran', 'Ankole', 'Friesian']
-        genders = ['male', 'female']
+        genders = ['M', 'F']
         statuses = ['active', 'active', 'active', 'sick']  # Weighted towards active
         
         for i in range(1, 21):
-            tag_id = f"BORAN{i:03d}"
+            tag_id = f"Dowry{i:03d}"
             
             # Check if animal already exists
             if Animal.objects.filter(tag_id=tag_id).exists():
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                 gender=random.choice(genders),
                 birth_date=birth_date,
                 status=random.choice(statuses),
-                ranch=ranch
+                ranch_id=ranch.name
             )
             
             self.stdout.write(self.style.SUCCESS(f'Created animal: {animal.tag_id}'))

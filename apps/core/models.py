@@ -1,6 +1,11 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+import qrcode
+from io import BytesIO
+from django.core.files import File
+from PIL import Image
 
 class User(AbstractUser):
     """Extended user model with ranch-specific fields"""
@@ -36,49 +41,115 @@ class Ranch(models.Model):
         return self.name
 
 class Animal(models.Model):
-    """Core animal model - Member 1 will extend this"""
+    """
+    Core animal model - stores basic information about each cattle
+    """
     GENDER_CHOICES = [
-        ('male', 'Male'),
-        ('female', 'Female'),
+        ('M', 'Male'),
+        ('F', 'Female'),
     ]
     
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('sick', 'Sick'),
-        ('quarantine', 'Quarantine'),
-        ('sold', 'Sold'),
-        ('deceased', 'Deceased'),
+        ('ACTIVE', 'Active'),
+        ('SOLD', 'Sold'),
+        ('DECEASED', 'Deceased'),
+        ('QUARANTINE', 'Quarantine'),
     ]
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tag_id = models.CharField(max_length=50, unique=True, db_index=True)
-    name = models.CharField(max_length=100)
-    breed = models.CharField(max_length=50)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    birth_date = models.DateField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    BREED_CHOICES = [
+        ('BORAN', 'Boran'),
+        ('ANKOLE', 'Ankole'),
+        ('FRIESIAN', 'Friesian'),
+        ('JERSEY', 'Jersey'),
+        ('CROSS', 'Cross Breed'),
+        ('OTHER', 'Other'),
+    ]
+    
+    # Primary identification
+    tag_id = models.CharField(max_length=50, unique=True, help_text="Unique tag/ID for the animal")
+    name = models.CharField(max_length=100, blank=True, help_text="Optional name for the animal")
+    
+    # Basic info
+    breed = models.CharField(max_length=50, choices=BREED_CHOICES, default='BORAN')
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    birth_date = models.DateField(help_text="Date of birth")
+    
+    # Status and location
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    ranch_id = models.CharField(max_length=50, default='KISOMBWA_MAIN', help_text="Ranch location identifier")
+    
+    # Physical attributes
+    color = models.CharField(max_length=100, blank=True, help_text="Color/markings description")
+    weight_at_birth = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
     
     # Relationships
-    ranch = models.ForeignKey(Ranch, on_delete=models.CASCADE, related_name='animals')
-    sire = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_sire')
-    dam = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_dam')
+    sire = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_sire', help_text="Father")
+    dam = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_dam', help_text="Mother")
+    
+    # IoT Integration (for Member 2)
+    collar_id = models.CharField(max_length=50, null=True, blank=True, help_text="Associated IoT collar device ID")
     
     # Media
-    photo = models.ImageField(upload_to='animals/', blank=True, null=True)
+    photo = models.ImageField(upload_to='animals/', null=True, blank=True)
+    qr_code = models.ImageField(upload_to='qrcodes/', blank=True, help_text="Auto-generated QR code")
     
-    # Metadata
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'animals'
         ordering = ['-created_at']
+        verbose_name = 'Animal'
+        verbose_name_plural = 'Animals'
     
     def __str__(self):
-        return f"{self.tag_id} - {self.name}"
+        return f"{self.tag_id} - {self.name or 'Unnamed'}"
     
-    @property
-    def age_months(self):
-        from datetime import date
-        today = date.today()
-        return (today.year - self.birth_date.year) * 12 + today.month - self.birth_date.month
+    def age_in_days(self):
+        """Calculate animal's age in days"""
+        return (timezone.now().date() - self.birth_date).days
+    
+    def age_display(self):
+        """Display age in human-readable format"""
+        days = self.age_in_days()
+        years = days // 365
+        months = (days % 365) // 30
+        if years > 0:
+            return f"{years} year(s), {months} month(s)"
+        elif months > 0:
+            return f"{months} month(s)"
+        else:
+            return f"{days} day(s)"
+    
+    def generate_qr_code(self):
+        """
+        Generate QR code containing the animal's tag_id
+        This QR code can be scanned to quickly look up the animal
+        """
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        # The QR code will contain the tag_id
+        qr.add_data(self.tag_id)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to BytesIO object
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        
+        # Save to model field
+        filename = f'qr_{self.tag_id}.png'
+        self.qr_code.save(filename, File(buffer), save=False)
+    
+    def save(self, *args, **kwargs):
+        """Override save to auto-generate QR code"""
+        # Generate QR code if it doesn't exist
+        if not self.qr_code:
+            self.generate_qr_code()
+        super().save(*args, **kwargs)

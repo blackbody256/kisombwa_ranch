@@ -76,8 +76,6 @@ class Animal(models.Model):
     
     # Status and location
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
-    ranch_id = models.CharField(max_length=50, default='KISOMBWA_MAIN', help_text="Ranch location identifier")
-    
     # Physical attributes
     color = models.CharField(max_length=100, blank=True, help_text="Color/markings description")
     weight_at_birth = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
@@ -85,9 +83,6 @@ class Animal(models.Model):
     # Relationships
     sire = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_sire', help_text="Father")
     dam = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='offspring_as_dam', help_text="Mother")
-    
-    # IoT Integration (for Member 2)
-    collar_id = models.CharField(max_length=50, null=True, blank=True, help_text="Associated IoT collar device ID")
     
     # Media
     photo = models.ImageField(upload_to='animals/', null=True, blank=True)

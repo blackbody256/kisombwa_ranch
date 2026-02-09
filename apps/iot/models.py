@@ -1,8 +1,6 @@
 import uuid
 from django.db import models
-from apps.core.models import Animal
 
-# Create your models here.
 class Device(models.Model):
     """Iot collar device"""
     STATUS_CHOICES = [
@@ -13,7 +11,9 @@ class Device(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     device_id = models.CharField(max_length=50, unique=True, db_index=True)
-    animal = models.ForeignKey(Animal, on_delete=models.SET_NULL, null=True, blank=True, related_name='devices')
+    animal = models.OneToOneField('core.Animal', on_delete=models.CASCADE, null=True, blank=True, related_name='assigned_device')
+    ranch = models.ForeignKey('core.Ranch', on_delete=models.PROTECT, null=False, blank=False, related_name='devices')
+
     firmware_version = models.CharField(max_length=20, default='1.0.0')
     battery_level = models.IntegerField(default=100)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
@@ -31,7 +31,7 @@ class SensorData(models.Model):
     """Raw sensor readings from collar"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='sensor_readings')
-    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='sensor_data', null=True, blank=True)
+    animal = models.ForeignKey('core.Animal', on_delete=models.CASCADE, related_name='sensor_data', null=True, blank=True)
     
     # Timestamp
     timestamp = models.DateTimeField(db_index=True)
@@ -60,8 +60,8 @@ class SensorData(models.Model):
         db_table = 'sensor_data'
         ordering = ['-timestamp']
         indexes = [
-            models.Index(fields=['device', '-timestamp']),
-            models.Index(fields=['animal', '-timestamp']),
+            models.Index(fields=['device', '-timestamp'], name='sensor_data_device_ts_idx'),
+            models.Index(fields=['animal', '-timestamp'], name='sensor_data_animal_ts_idx'),
         ]
     
     def __str__(self):
@@ -73,4 +73,3 @@ class SensorData(models.Model):
             import math
             self.activity_level = math.sqrt(self.acc_x**2 + self.acc_y**2 + self.acc_z**2)
         super().save(*args, **kwargs)
-    

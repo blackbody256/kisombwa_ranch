@@ -1,5 +1,6 @@
 from django import forms
 from apps.core.models import Animal
+from apps.iot.models import Device
 from .models import HealthRecord, Vaccination, WeightRecord
 
 class AnimalRegistrationForm(forms.ModelForm):
@@ -7,12 +8,17 @@ class AnimalRegistrationForm(forms.ModelForm):
     Form for registering a new animal
     Uses Django ModelForm to automatically generate fields from the Animal model
     """
+    device = forms.ModelChoiceField(
+        queryset=Device.objects.filter(animal__isnull=True),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text='Select an available IoT collar device for this animal.',
+    )
+
     class Meta:
         model = Animal
         fields = [
             'tag_id', 'name', 'breed', 'gender', 'birth_date',
-            'color', 'weight_at_birth', 'ranch_id',
-            'sire', 'dam', 'photo'
+            'color', 'weight_at_birth', 'sire', 'dam', 'photo'
         ]
         widgets = {
             'birth_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -22,7 +28,6 @@ class AnimalRegistrationForm(forms.ModelForm):
             'gender': forms.Select(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Brown with white spots'}),
             'weight_at_birth': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'kg'}),
-            'ranch_id': forms.TextInput(attrs={'class': 'form-control'}),
             'sire': forms.Select(attrs={'class': 'form-control'}),
             'dam': forms.Select(attrs={'class': 'form-control'}),
             'photo': forms.FileInput(attrs={'class': 'form-control'}),
@@ -39,6 +44,17 @@ class AnimalRegistrationForm(forms.ModelForm):
         self.fields['sire'].queryset = Animal.objects.filter(gender='M')
         # Filter dam to show only females
         self.fields['dam'].queryset = Animal.objects.filter(gender='F')
+        # Filter devices to show only those not yet assigned to an animal
+        self.fields['device'].queryset = Device.objects.filter(animal__isnull=True)
+
+    def save(self, commit=True):
+        animal = super().save(commit=commit)
+        device = self.cleaned_data.get('device')
+        if device is not None:
+            device.animal = animal
+            if commit:
+                device.save()
+        return animal
 
 
 class HealthRecordForm(forms.ModelForm):

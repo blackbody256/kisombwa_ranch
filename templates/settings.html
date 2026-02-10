@@ -1,0 +1,193 @@
+{% extends "livestock/base.html" %}
+
+{% block title %}System Settings - Kisombwa Ranch{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+  <!-- Page Header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">System Settings</h1>
+    <p style="color: #6b7280; font-size: 0.875rem;">Configure system preferences, alert thresholds, and notification settings</p>
+  </div>
+
+  <!-- Statistics Overview -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- Total Animals -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: #dcfce7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 28px; height: 28px; stroke: #16a34a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+            <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #6b7280; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Animals</div>
+          <div style="font-size: 2rem; font-weight: 700; color: #111827;">{{ total_animals }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Active Animals -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: #dbeafe; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 28px; height: 28px; stroke: #2563eb; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #6b7280; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Active Animals</div>
+          <div style="font-size: 2rem; font-weight: 700; color: #111827;">{{ active_animals }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ranches -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: #ede9fe; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 28px; height: 28px; stroke: #7c3aed; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #6b7280; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Ranches</div>
+          <div style="font-size: 2rem; font-weight: 700; color: #111827;">{{ ranches }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div style="margin-bottom: 1.5rem;">
+      {% for message in messages %}
+      <div style="padding: 0.875rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; {% if message.tags == 'success' %}background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;{% elif message.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;{% else %}background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;{% endif %}; margin-bottom: 0.5rem;">
+        <svg style="width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+          {% if message.tags == 'success' %}
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          {% elif message.tags == 'error' %}
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          {% else %}
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          {% endif %}
+        </svg>
+        <span style="font-size: 0.875rem; font-weight: 500;">{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Settings Form -->
+  <div style="background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb;">
+    <form method="post" style="padding: 2rem;">
+      {% csrf_token %}
+
+      {% if settings_by_category %}
+        {% for category_name, settings in settings_by_category.items %}
+        <div style="{% if not forloop.last %}margin-bottom: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid #e5e7eb;{% endif %}">
+          <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem; color: #111827;">{{ category_name }}</h2>
+
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for setting in settings %}
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              {% if setting.setting_type == 'boolean' %}
+              <label style="display: flex; align-items: flex-start; cursor: pointer; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                <input
+                  type="checkbox"
+                  name="setting_{{ setting.setting_key }}"
+                  {% if setting.is_enabled %}checked{% endif %}
+                  style="margin-top: 0.125rem; margin-right: 0.75rem; width: 1.125rem; height: 1.125rem; cursor: pointer; accent-color: #16a34a;"
+                />
+                <div style="flex: 1;">
+                  <div style="font-weight: 500; color: #111827; margin-bottom: 0.25rem;">{{ setting.label }}</div>
+                  {% if setting.description %}
+                  <div style="font-size: 0.875rem; color: #6b7280;">{{ setting.description }}</div>
+                  {% endif %}
+                </div>
+              </label>
+              
+              {% elif setting.setting_type == 'integer' %}
+              <label style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #111827;">{{ setting.label }}</span>
+                <input
+                  type="number"
+                  name="setting_{{ setting.setting_key }}"
+                  value="{{ setting.integer_value|default:'' }}"
+                  style="padding: 0.625rem 0.875rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; max-width: 20rem; transition: all 0.2s;"
+                  onfocus="this.style.outline='none'; this.style.borderColor='#16a34a'; this.style.boxShadow='0 0 0 3px rgba(22, 163, 74, 0.1)'"
+                  onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'"
+                />
+                {% if setting.description %}
+                <span style="font-size: 0.875rem; color: #6b7280;">{{ setting.description }}</span>
+                {% endif %}
+              </label>
+              
+              {% elif setting.setting_type == 'decimal' %}
+              <label style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #111827;">{{ setting.label }}</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="setting_{{ setting.setting_key }}"
+                  value="{{ setting.decimal_value|default:'' }}"
+                  style="padding: 0.625rem 0.875rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; max-width: 20rem; transition: all 0.2s;"
+                  onfocus="this.style.outline='none'; this.style.borderColor='#16a34a'; this.style.boxShadow='0 0 0 3px rgba(22, 163, 74, 0.1)'"
+                  onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'"
+                />
+                {% if setting.description %}
+                <span style="font-size: 0.875rem; color: #6b7280;">{{ setting.description }}</span>
+                {% endif %}
+              </label>
+              
+              {% else %}
+              <label style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #111827;">{{ setting.label }}</span>
+                <input
+                  type="text"
+                  name="setting_{{ setting.setting_key }}"
+                  value="{{ setting.string_value }}"
+                  style="padding: 0.625rem 0.875rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; max-width: 32rem; transition: all 0.2s;"
+                  onfocus="this.style.outline='none'; this.style.borderColor='#16a34a'; this.style.boxShadow='0 0 0 3px rgba(22, 163, 74, 0.1)'"
+                  onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'"
+                />
+                {% if setting.description %}
+                <span style="font-size: 0.875rem; color: #6b7280;">{{ setting.description }}</span>
+                {% endif %}
+              </label>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Save Button -->
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+          <button type="submit" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white; font-size: 0.875rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px 0 rgba(0, 0, 0, 0.1)'">
+            <svg style="width: 18px; height: 18px; stroke: white; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7"></path>
+            </svg>
+            Save Settings
+          </button>
+        </div>
+        
+      {% else %}
+        <!-- Empty State -->
+        <div style="text-align: center; padding: 4rem 2rem; color: #6b7280;">
+          <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; stroke: #9ca3af; stroke-width: 1.5; fill: none;" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <p style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem; color: #111827;">No Settings Configured</p>
+          <p style="font-size: 0.875rem;">Settings will appear here once they are added to the system.</p>
+        </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}

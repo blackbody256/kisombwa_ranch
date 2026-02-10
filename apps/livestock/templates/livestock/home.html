@@ -3,6 +3,18 @@
 {% block title %}Dashboard - Kisombwa Ranch{% endblock %}
 
 {% block content %}
+<!-- Django Messages -->
+{% if messages %}
+<div style="margin-bottom: 1.5rem;">
+  {% for message in messages %}
+    <div style="padding: 0.875rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; {% if message.tags == 'success' %}background: hsl(142.1, 76.2%, 95%); color: hsl(142.1, 76.2%, 28%); border: 1px solid hsl(142.1, 76.2%, 85%);{% elif message.tags == 'error' %}background: hsl(0, 84.2%, 95%); color: hsl(0, 84.2%, 40%); border: 1px solid hsl(0, 84.2%, 85%);{% else %}background: hsl(210, 40%, 96.1%); color: hsl(222.2, 47%, 11%); border: 1px solid hsl(214.3, 31.8%, 91.4%);{% endif %}">
+      <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' %}bi-x-circle{% else %}bi-info-circle{% endif %}"></i>
+      <span style="font-size: 0.875rem; font-weight: 500;">{{ message }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Hero Banner -->
 <div class="hero-banner">
     <div class="hero-content">
@@ -10,26 +22,27 @@
             <i class="bi bi-calendar3"></i>
             <span>{% now "l, F j, Y" %}</span>
         </div>
-        <h1 class="hero-title">Good {% now "A" %}, Manager</h1>
-        <p class="hero-subtitle">Your ranch is running smoothly. {{ vaccinations_due }} items need your attention today.</p>
+        <h1 class="hero-title">Hello, {{ user_first_name }}</h1>
+        <p class="hero-subtitle">Your ranch is running smoothly.</p>
         <div class="hero-location">
             <i class="bi bi-geo-alt-fill"></i>
-            <span>Mubende District, Uganda • 2,400 hectares</span>
+            <span>{{ ranch_location }} • {{ ranch_size_hectares|floatformat:0 }} hectares</span>
         </div>
     </div>
     
+    <!-- Weather Widget - Dynamic data from IoT sensors -->
     <div class="hero-weather">
         <div class="weather-item">
-            <i class="bi bi-sun weather-icon"></i>
+            <i class="bi {% if weather_temp > 30 %}bi-sun{% elif weather_temp > 20 %}bi-cloud-sun{% else %}bi-cloud{% endif %} weather-icon"></i>
             <div class="weather-info">
-                <p>28°C</p>
-                <span>Partly Cloudy</span>
+                <p>{{ weather_temp|floatformat:0 }}°C</p>
+                <span>{{ weather_condition }}</span>
             </div>
         </div>
         <div class="weather-item">
             <i class="bi bi-droplet weather-icon"></i>
             <div class="weather-info">
-                <p>65%</p>
+                <p>{{ weather_humidity }}%</p>
                 <span>Humidity</span>
             </div>
         </div>
@@ -47,7 +60,7 @@
     <div class="stat-card">
         <div class="stat-header">
             <div>
-                <div class="stat-value">{{ total_animals }}</div>
+                <div class="stat-value">{{ total_animals_all }}</div>
                 <div class="stat-change" style="color: {% if livestock_growth >= 0 %}var(--primary-green){% else %}#ef4444{% endif %}">
                     <i class="bi bi-arrow-{% if livestock_growth >= 0 %}up{% else %}down{% endif %}"></i> {{ livestock_growth|floatformat:1 }}%
                 </div>
@@ -116,14 +129,20 @@
                         <i class="bi bi-thermometer-half" style="font-size: 1.5rem; color: var(--primary-green);"></i>
                         <h6 style="margin: 0; color: #6b7280; font-weight: 600;">Avg Body Temp</h6>
                     </div>
-                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ avg_body_temp }}°C</h2>
+                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">
+                        {% if avg_body_temp %}{{ avg_body_temp }}°C{% else %}<span style="font-size: 1rem; color: #9ca3af;">No data</span>{% endif %}
+                    </h2>
                 </div>
-                <span class="badge-green">{{ temp_status }}</span>
+                <span class="badge-{% if temp_status == 'Normal' %}green{% elif temp_status == 'High' %}orange{% elif temp_status == 'Low' %}blue{% else %}gray{% endif %}">{{ temp_status }}</span>
             </div>
+            {% if avg_body_temp %}
             <div class="progress-modern mb-2">
                 <div class="progress-bar-modern" style="width: {{ temp_percentage }}%"></div>
             </div>
             <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">{{ temp_percentage }}% within normal range (37.5-39.5°C)</p>
+            {% else %}
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">Add IoT sensor data to track body temperature</p>
+            {% endif %}
         </div>
     </div>
     
@@ -135,14 +154,24 @@
                         <i class="bi bi-graph-up-arrow" style="font-size: 1.5rem; color: var(--primary-green);"></i>
                         <h6 style="margin: 0; color: #6b7280; font-weight: 600;">Daily Weight Gain</h6>
                     </div>
-                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ avg_weight_gain }} kg</h2>
+                    <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">
+                        {% if avg_weight_gain %}{{ avg_weight_gain }} kg{% else %}<span style="font-size: 1rem; color: #9ca3af;">No data</span>{% endif %}
+                    </h2>
                 </div>
-                <span class="badge-green">+{{ weight_gain_percentage }}%</span>
+                {% if avg_weight_gain %}
+                <span class="badge-{% if weight_gain_percentage >= 0 %}green{% else %}orange{% endif %}">{% if weight_gain_percentage >= 0 %}+{% endif %}{{ weight_gain_percentage }}%</span>
+                {% else %}
+                <span class="badge-gray">Pending</span>
+                {% endif %}
             </div>
+            {% if avg_weight_gain %}
             <div class="progress-modern mb-2">
-                <div class="progress-bar-modern" style="width: 85%"></div>
+                <div class="progress-bar-modern" style="width: {% if weight_gain_percentage > 0 %}{{ weight_gain_percentage|add:100 }}{% else %}50{% endif %}%"></div>
             </div>
-            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">Exceeding target of 0.75 kg/day</p>
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">{% if weight_gain_percentage >= 0 %}Exceeding{% else %}Below{% endif %} target of 0.75 kg/day</p>
+            {% else %}
+            <p style="margin: 0; font-size: 0.75rem; color: #9ca3af;">Add weight records to track daily gain</p>
+            {% endif %}
         </div>
     </div>
     
@@ -156,7 +185,7 @@
                     </div>
                     <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700;">{{ vaccination_rate }}%</h2>
                 </div>
-                <span class="badge-blue">{% if vaccination_rate >= 95 %}Expert Ready{% else %}In Progress{% endif %}</span>
+                <span class="badge-{% if vaccination_rate >= 95 %}blue{% elif vaccination_rate >= 70 %}green{% else %}orange{% endif %}">{% if vaccination_rate >= 95 %}Expert Ready{% elif vaccination_rate >= 70 %}Good{% else %}In Progress{% endif %}</span>
             </div>
             <div class="progress-modern mb-2">
                 <div class="progress-bar-modern" style="width: {{ vaccination_rate }}%; background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);"></div>

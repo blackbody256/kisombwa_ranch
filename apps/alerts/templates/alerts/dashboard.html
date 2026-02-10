@@ -1,0 +1,344 @@
+{% extends 'livestock/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: hsl(142.1, 76.2%, 36.3%);
+    --success: hsl(142.1, 70.6%, 45.3%);
+    --warning: hsl(37.7, 100%, 52.5%);
+    --danger: hsl(0, 84.2%, 60.2%);
+    --critical: hsl(0, 84.2%, 50%);
+    --secondary: hsl(210, 40%, 96.1%);
+    --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+    --border: hsl(214.3, 31.8%, 91.4%);
+    --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  
+  .icon { width: 20px; height: 20px; fill: currentColor; }
+  .icon-sm { width: 16px; height: 16px; fill: currentColor; }
+  .icon-lg { width: 28px; height: 28px; fill: currentColor; }
+  
+  .alert-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    border-left: 4px solid;
+  }
+  
+  .alert-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-lg);
+  }
+  
+  .alert-card.critical { border-left-color: var(--critical); }
+  .alert-card.high { border-left-color: var(--danger); }
+  .alert-card.medium { border-left-color: var(--warning); }
+  .alert-card.low { border-left-color: var(--success); }
+  
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-lg);
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .badge.critical { background: hsla(0, 84.2%, 60.2%, 0.15); color: var(--critical); }
+  .badge.high { background: hsla(0, 84.2%, 60.2%, 0.15); color: var(--danger); }
+  .badge.medium { background: hsla(37.7, 100%, 52.5%, 0.15); color: var(--warning); }
+  .badge.low { background: hsla(142.1, 76.2%, 36.3%, 0.15); color: var(--success); }
+  
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .filter-btn:hover {
+    background: var(--secondary);
+  }
+  
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  @media (max-width: 768px) {
+    .grid-main { grid-template-columns: 1fr !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+  
+  <!-- Page Header -->
+  <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-family: Georgia, serif; font-size: 2rem; font-weight: 700; color: hsl(222.2, 84%, 4.9%); display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+          <svg class="icon-lg" style="color: #EF4444;" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          Alerts & Notifications
+          {% if unread_alerts > 0 %}
+          <span class="badge critical">{{ unread_alerts }} new</span>
+          {% endif %}
+        </h1>
+        <p style="color: var(--muted-foreground); font-size: 1rem; margin: 0.5rem 0 0 0;">
+          Real-time notifications from livestock, IoT devices, and AI predictions
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button onclick="window.location.reload()" style="display: inline-flex; align-items: center; padding: 0.625rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: white; color: hsl(222.2, 84%, 4.9%);">
+          <svg class="icon-sm" style="margin-right: 0.5rem; color: #3B82F6;" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Refresh
+        </button>
+        <a href="{% url 'alerts:generate' %}" style="display: inline-flex; align-items: center; padding: 0.625rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; background: linear-gradient(135deg, var(--primary) 0%, hsl(142.1, 76.2%, 28%) 100%); color: white; text-decoration: none; box-shadow: 0 1px 3px 0 rgba(34, 197, 94, 0.3);">
+          <svg class="icon-sm" style="margin-right: 0.5rem;" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Generate Alerts
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Critical Alerts</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ critical_alerts }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Total Active</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ total_alerts }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Unread</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ unread_alerts }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Last 24 Hours</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ recent_alerts_count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); margin-bottom: 2rem;">
+    <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: hsl(222.2, 84%, 4.9%);">Status</label>
+        <select name="status" onchange="this.form.submit()" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+          <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+        </select>
+      </div>
+      
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: hsl(222.2, 84%, 4.9%);">Severity</label>
+        <select name="severity" onchange="this.form.submit()" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+          <option value="">All Severities</option>
+          <option value="critical" {% if severity_filter == 'critical' %}selected{% endif %}>Critical</option>
+          <option value="high" {% if severity_filter == 'high' %}selected{% endif %}>High</option>
+          <option value="medium" {% if severity_filter == 'medium' %}selected{% endif %}>Medium</option>
+          <option value="low" {% if severity_filter == 'low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: hsl(222.2, 84%, 4.9%);">Type</label>
+        <select name="type" onchange="this.form.submit()" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+          <option value="">All Types</option>
+          {% for type_code, type_label in alert_types %}
+          <option value="{{ type_code }}" {% if type_filter == type_code %}selected{% endif %}>{{ type_label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div style="align-self: flex-end;">
+        <a href="{% url 'alerts:dashboard' %}" style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; border: 1px solid var(--border); background: white; color: hsl(222.2, 84%, 4.9%);">
+          Clear Filters
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Main Content -->
+  <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;" class="grid-main">
+    
+    <!-- Alerts List -->
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <h2 style="font-family: Georgia, serif; font-size: 1.5rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">
+        Recent Alerts
+      </h2>
+      
+      {% for alert in alerts %}
+      <div class="alert-card {{ alert.severity }}">
+        <div style="display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <span style="font-size: 1.5rem;">{{ alert.icon }}</span>
+              <div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ alert.title }}</h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                  <span class="badge {{ alert.severity }}">{{ alert.get_severity_display }}</span>
+                  <span class="badge" style="background: hsla(210, 40%, 96.1%, 0.8); color: hsl(215.4, 16.3%, 46.9%);">{{ alert.get_alert_type_display }}</span>
+                  {% if alert.animal %}
+                  <span style="font-size: 0.75rem; color: var(--muted-foreground);">• {{ alert.animal.tag_id }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <p style="font-size: 0.9375rem; color: hsl(222.2, 84%, 30%); margin: 0 0 0.75rem 0; line-height: 1.5;">
+              {{ alert.message }}
+            </p>
+            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.8125rem; color: var(--muted-foreground);">
+              <span style="display: flex; align-items: center; gap: 0.25rem;">
+                <svg class="icon-sm" style="color: #6B7280;" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ alert.created_at|timesince }} ago
+              </span>
+              {% if not alert.is_read %}
+              <span style="color: var(--primary); font-weight: 600;">• New</span>
+              {% endif %}
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            {% if not alert.is_resolved %}
+            <button onclick="resolveAlert('{{ alert.id }}')" style="padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer;">
+              Resolve
+            </button>
+            {% endif %}
+            {% if alert.animal %}
+            <a href="{% url 'animal_profile' alert.animal.tag_id %}" style="padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; border: 1px solid var(--border); background: white; color: hsl(222.2, 84%, 4.9%); text-align: center;">
+              View Animal
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="background: white; border-radius: 12px; padding: 4rem 2rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); text-align: center;">
+        <div style="width: 4rem; height: 4rem; border-radius: 50%; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem 0; color: hsl(222.2, 84%, 4.9%);">All Clear!</h3>
+        <p style="color: var(--muted-foreground); font-size: 1rem; margin: 0;">No alerts matching your filters.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Alert Breakdown -->
+      <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+        <h3 style="font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0 0 1.25rem 0; color: hsl(222.2, 84%, 4.9%);">By Type</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+          {% for item in type_breakdown %}
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 0.9375rem; color: hsl(222.2, 84%, 30%);">{{ item.alert_type|title }}</span>
+            <span style="font-size: 1.125rem; font-weight: 700; color: hsl(222.2, 84%, 4.9%);">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Animals with Most Alerts -->
+      <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+        <h3 style="font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0 0 1.25rem 0; color: hsl(222.2, 84%, 4.9%);">Top Animals</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+          {% for animal in animals_with_alerts %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--secondary); border-radius: 8px;">
+            <div>
+              <p style="font-size: 0.9375rem; font-weight: 600; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ animal.animal__tag_id }}</p>
+              {% if animal.animal__name %}
+              <p style="font-size: 0.8125rem; color: var(--muted-foreground); margin: 0;">{{ animal.animal__name }}</p>
+              {% endif %}
+            </div>
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--danger); color: white; font-weight: 700; font-size: 0.875rem;">{{ animal.alert_count }}</span>
+          </div>
+          {% empty %}
+          <p style="text-align: center; color: var(--muted-foreground); font-size: 0.875rem; margin: 0;">No animal-specific alerts</p>
+          {% endfor %}
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<script>
+function resolveAlert(alertId) {
+  fetch(`/alerts/${alertId}/resolve/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.reload();
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+</script>
+
+{% endblock %}

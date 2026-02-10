@@ -8,7 +8,10 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/livestock/', permanent=False)),  # Add this line
     path('admin/', admin.site.urls),
     path('livestock/', include('apps.livestock.urls')),
-    path('api/iot/', include('apps.iot.urls')),
+    path('analytics/', include('apps.analytics.urls')),
+    path('ai-insights/', include('apps.ai_insights.urls')),
+    path('alerts/', include('apps.alerts.urls')),
+    path('iot/', include('apps.iot.urls')),
     path('', include('apps.core.urls')),
 ]
 

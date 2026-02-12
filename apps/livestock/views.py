@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
-from .models import Animal, HealthRecord, Vaccination, WeightRecord
 from .forms import (
     AnimalRegistrationForm, HealthRecordForm, 
     VaccinationForm, WeightRecordForm, AnimalSearchForm
 )
+from apps.core.models import Animal
+from .models import HealthRecord, Vaccination, WeightRecord
 
 def livestock_home(request):
     """
@@ -313,6 +314,7 @@ def animal_profile(request, tag_id):
     health_records = animal.health_records.all()
     vaccinations = animal.vaccinations.all()
     weight_records = animal.weight_records.all().order_by('date')
+    latest_weight = animal.weight_records.order_by('-date').first()
     
     # Get offspring (children)
     if animal.gender == 'M':
@@ -326,6 +328,7 @@ def animal_profile(request, tag_id):
         'vaccinations': vaccinations,
         'weight_records': weight_records,
         'offspring': offspring,
+        'latest_weight': latest_weight,
     }
     return render(request, 'livestock/animal_profile.html', context)
 
@@ -406,8 +409,6 @@ def weight_record_add(request, tag_id=None):
         if form.is_valid():
             weight_record = form.save()
             # Update animal's current weight
-            weight_record.animal.current_weight = weight_record.weight
-            weight_record.animal.save()
             messages.success(request, 'Weight recorded successfully!')
             return redirect('animal_profile', tag_id=weight_record.animal.tag_id)
     else:

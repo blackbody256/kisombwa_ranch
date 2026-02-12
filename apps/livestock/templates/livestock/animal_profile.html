@@ -39,7 +39,7 @@
             </div>
             <div class="col-md-6">
                 <p><strong>Color/Markings:</strong> {{ animal.color|default:"—" }}</p>
-                <p><strong>Current Weight:</strong> {{ animal.current_weight|default:"—" }} kg</p>
+                <p><strong>Current Weight:</strong> {% if latest_weight %}{{ latest_weight.weight }} kg{% else %}—{% endif %}</p>
                 <p><strong>Ranch ID:</strong> {{ animal.ranch_id }}</p>
                 <p><strong>Collar ID:</strong> {{ animal.collar_id|default:"Not assigned" }}</p>
             </div>

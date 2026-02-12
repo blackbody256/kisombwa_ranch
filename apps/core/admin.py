@@ -17,9 +17,10 @@ class RanchAdmin(admin.ModelAdmin):
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['tag_id', 'name', 'breed', 'gender', 'status', 'ranch']
+    list_display = ['tag_id', 'name', 'breed', 'gender', 'status', 'assigned_device_id']
     list_filter = ['breed', 'gender', 'status']
     search_fields = ['tag_id', 'name']
+
     readonly_fields = ['created_at', 'updated_at']
 
 
@@ -42,3 +43,11 @@ class SystemSettingAdmin(admin.ModelAdmin):
             'fields': ('is_enabled', 'created_at', 'updated_at')
         }),
     )
+    def assigned_device_id(self, obj):
+        try:
+            return obj.assigned_device.device_id
+        except Exception:
+            return '-'
+    assigned_device_id.short_description = 'Device'
+    readonly_fields = ['created_at', 'updated_at']
+

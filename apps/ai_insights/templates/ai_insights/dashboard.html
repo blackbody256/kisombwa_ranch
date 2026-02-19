@@ -1,0 +1,391 @@
+{% extends 'livestock/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: hsl(142.1, 76.2%, 36.3%);
+    --primary-hover: hsl(142.1, 76.2%, 32%);
+    --success: hsl(142.1, 70.6%, 45.3%);
+    --accent: hsl(37.7, 100%, 52.5%);
+    --destructive: hsl(0, 84.2%, 60.2%);
+    --secondary: hsl(210, 40%, 96.1%);
+    --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+    --border: hsl(214.3, 31.8%, 91.4%);
+    --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  
+  .icon { width: 20px; height: 20px; fill: currentColor; }
+  .icon-sm { width: 16px; height: 16px; fill: currentColor; }
+  .icon-lg { width: 28px; height: 28px; fill: currentColor; }
+  
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-lg);
+  }
+  
+  .stat-card.primary {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.1) 100%);
+    border-color: rgba(34, 197, 94, 0.2);
+  }
+  
+  .prediction-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  
+  .prediction-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-lg);
+  }
+  
+  .prediction-card.high-risk {
+    border-left: 4px solid var(--destructive);
+    border-color: hsla(0, 84.2%, 60.2%, 0.3);
+  }
+  
+  .prediction-card.medium-risk {
+    border-left: 4px solid var(--accent);
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, hsl(142.1, 76.2%, 28%) 100%);
+    color: white;
+    box-shadow: 0 1px 3px 0 rgba(34, 197, 94, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4);
+  }
+  
+  .btn-secondary {
+    background: white;
+    border: 1px solid var(--border);
+    color: hsl(222.2, 84%, 4.9%);
+  }
+  
+  .btn-secondary:hover {
+    background: var(--secondary);
+  }
+  
+  @media (max-width: 1024px) {
+    .grid-main {
+      grid-template-columns: 1fr !important;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .stat-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block title %}AI Insights - Kisombwa Ranch{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto; padding: 0 1rem;">
+  <!-- Page Header -->
+  <div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-family: Georgia, serif; font-size: 2rem; font-weight: 700; color: hsl(222.2, 84%, 4.9%); display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+          <svg class="icon-lg" style="color: #8B5CF6;" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          AI Insights
+          <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);">
+            <svg class="icon" style="width: 12px; height: 12px; margin-right: 0.25rem; fill: white;" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+            Beta
+          </span>
+        </h1>
+        <p style="color: var(--muted-foreground); font-size: 1rem; margin: 0.5rem 0 0 0;">
+          Machine learning predictions and actionable recommendations for your herd
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button class="btn btn-secondary">
+          <svg class="icon-sm" style="margin-right: 0.5rem; color: #3B82F6;" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Refresh
+        </button>
+        <button class="btn btn-primary">
+          <svg class="icon-sm" style="margin-right: 0.5rem;" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Run Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stat-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="stat-card primary">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Active Predictions</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ total_predictions|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Accuracy Rate</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ accuracy_rate|floatformat:1|default:"0.0" }}%</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: hsla(37.7, 100%, 52.5%, 0.15); display: flex; align-items: center; justify-content: center;">
+          <svg class="icon-lg" style="color: var(--accent);" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Alerts Prevented</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ alerts_prevented|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 3.5rem; height: 3.5rem; border-radius: 12px; background: hsla(210, 40%, 96.1%, 1); display: flex; align-items: center; justify-content: center;">
+          <svg class="icon-lg" style="color: hsl(210, 40%, 50%);" viewBox="0 0 24 24"><path d="m13 2-2 2.5L9 7"/><path d="M10.1 8.6 8 13l-2.3-.8"/><path d="m13 2 2 2.5 2 2.5"/><path d="M13.9 8.6 16 13l2.3-.8"/><path d="M10.5 2h3"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 0.25rem 0; font-weight: 500;">Data Points/Day</p>
+          <p style="font-size: 1.75rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">{% if data_points_per_day >= 1000 %}{{ data_points_per_day|floatformat:0|cut:".0"|slice:":-3" }}K{% else %}{{ data_points_per_day|default:"0" }}{% endif %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid-main" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+    <!-- Predictions List -->
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2 style="font-family: Georgia, serif; font-size: 1.5rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">High-Risk Predictions</h2>
+        <span style="font-size: 0.875rem; color: var(--muted-foreground);">{{ high_risk_predictions|length }} alert{{ high_risk_predictions|length|pluralize }}</span>
+      </div>
+      
+      {% for prediction in high_risk_predictions %}
+      <div class="prediction-card {% if prediction.confidence_score >= 0.85 %}high-risk{% elif prediction.confidence_score >= 0.75 %}medium-risk{% endif %}">
+        <div style="display: flex; align-items: start; justify-content: space-between; gap: 1.25rem; margin-bottom: 1rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: {% if prediction.confidence_score >= 0.85 %}linear-gradient(135deg, #EF4444 0%, #DC2626 100%){% elif prediction.confidence_score >= 0.75 %}linear-gradient(135deg, #F59E0B 0%, #D97706 100%){% else %}linear-gradient(135deg, #10B981 0%, #059669 100%){% endif %}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              </div>
+              <div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: hsl(222.2, 84%, 4.9%);">{{ prediction.predicted_value|title }}</h3>
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">{{ prediction.animal.name|default:prediction.animal.tag_id }}</p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; {% if prediction.confidence_score >= 0.85 %}background: hsla(0, 84.2%, 60.2%, 0.15); color: var(--destructive);{% elif prediction.confidence_score >= 0.75 %}background: hsla(37.7, 100%, 52.5%, 0.15); color: var(--accent);{% else %}background: hsla(210, 40%, 96.1%, 0.8); color: hsl(210, 40%, 60%);{% endif %}">
+                {% if prediction.confidence_score >= 0.85 %}High Priority{% elif prediction.confidence_score >= 0.75 %}Medium{% else %}Low{% endif %}
+              </span>
+              <span style="font-size: 0.8125rem; color: var(--muted-foreground); display: flex; align-items: center; gap: 0.375rem;">
+                <svg class="icon" style="width: 14px; height: 14px; color: #6B7280;" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ prediction.predicted_at|timesince }} ago
+              </span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 2rem; font-weight: 700; color: {% if prediction.confidence_score >= 0.85 %}var(--destructive){% elif prediction.confidence_score >= 0.75 %}var(--accent){% else %}var(--primary){% endif %}; line-height: 1;">{{ prediction.confidence_score|floatformat:0|cut:".0" }}%</div>
+            <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0; font-weight: 500;">confidence</p>
+          </div>
+        </div>
+        <p style="font-size: 0.9375rem; color: hsl(222.2, 84%, 30%); margin: 0 0 1rem 0; line-height: 1.5;">
+          {{ prediction.prediction_type|title }} prediction using {{ prediction.model_name }} v{{ prediction.model_version }}
+          {% if prediction.metadata.recommendation %}
+          <br><strong style="color: hsl(222.2, 84%, 4.9%);">Recommendation:</strong> {{ prediction.metadata.recommendation }}
+          {% endif %}
+        </p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <span style="font-size: 0.875rem; color: var(--muted-foreground); display: flex; align-items: center; gap: 0.5rem;">
+            <svg class="icon-sm" style="color: #F59E0B;" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            Review recommended
+          </span>
+          <a href="{% url 'animal_detail' prediction.animal.id %}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">View Animal</a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="background: white; border-radius: 12px; padding: 4rem 2rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); text-align: center;">
+        <div style="width: 4rem; height: 4rem; border-radius: 50%; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);">
+          <svg class="icon-lg" style="color: white;" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem 0; color: hsl(222.2, 84%, 4.9%);">All Clear!</h3>
+        <p style="color: var(--muted-foreground); font-size: 1rem; margin: 0; max-width: 400px; margin-left: auto; margin-right: auto;">No high-risk predictions at the moment. AI models are monitoring your herd continuously.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <!-- Model Performance -->
+      <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); transition: all 0.3s;" onmouseover="this.style.boxShadow='var(--card-shadow-lg)'" onmouseout="this.style.boxShadow='var(--card-shadow)'">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);">
+            <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+          </div>
+          <h3 style="font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">Model Performance</h3>
+        </div>
+        
+        {% for model in active_models %}
+        <div style="margin-bottom: {% if not forloop.last %}1.25rem{% else %}0{% endif %}; padding-bottom: {% if not forloop.last %}1.25rem{% else %}0{% endif %}; border-bottom: {% if not forloop.last %}1px solid var(--border){% else %}none{% endif %};">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <div style="flex: 1;">
+              <h4 style="font-size: 0.9375rem; font-weight: 600; margin: 0 0 0.375rem 0; color: hsl(222.2, 84%, 4.9%);">{{ model.name }}</h4>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 20px; font-size: 0.6875rem; font-weight: 600; {% if model.is_active %}background: hsla(142.1, 76.2%, 36.3%, 0.12); color: var(--success);{% else %}background: hsla(37.7, 100%, 52.5%, 0.12); color: var(--accent);{% endif %}">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if model.is_active %}var(--success){% else %}var(--accent){% endif %}; margin-right: 0.375rem;"></span>
+                  {% if model.is_active %}Active{% else %}Training{% endif %}
+                </span>
+                <span style="font-size: 0.75rem; color: var(--muted-foreground);">v{{ model.version }}</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: {% if model.accuracy >= 0.9 %}var(--success){% elif model.accuracy >= 0.8 %}var(--primary){% else %}var(--accent){% endif %}; line-height: 1;">{{ model.accuracy|floatformat:0|cut:".0" }}%</div>
+              <p style="font-size: 0.6875rem; color: var(--muted-foreground); margin: 0.125rem 0 0 0; font-weight: 500;">accuracy</p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 0.5rem;">
+            <div style="height: 8px; background: hsla(210, 40%, 96.1%, 0.8); border-radius: 999px; overflow: hidden;">
+              <div style="height: 100%; background: {% if model.accuracy >= 0.9 %}linear-gradient(90deg, var(--success) 0%, hsl(142.1, 76.2%, 45%) 100%){% elif model.accuracy >= 0.8 %}linear-gradient(90deg, var(--primary) 0%, hsl(142.1, 76.2%, 36.3%) 100%){% else %}linear-gradient(90deg, var(--accent) 0%, hsl(37.7, 100%, 60%) 100%){% endif %}; width: {{ model.accuracy|floatformat:0|cut:".0" }}%; border-radius: 999px; transition: width 0.5s ease;"></div>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8125rem; color: var(--muted-foreground);">
+            <span style="display: flex; align-items: center; gap: 0.375rem;">
+              <svg class="icon-sm" style="color: #6366F1;" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              {{ model.prediction_count }} prediction{{ model.prediction_count|pluralize }}
+            </span>
+            <span style="font-weight: 500; color: hsl(222.2, 84%, 30%);">{{ model.updated_at|date:"M d" }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 1.5rem 0;">
+          <svg class="icon-lg" style="color: #9CA3AF; margin-bottom: 0.75rem;" viewBox="0 0 24 24"><path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+          <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">No active models</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- AI Capabilities -->
+      <div style="background: linear-gradient(135deg, hsla(142.1, 76.2%, 36.3%, 0.06) 0%, hsla(221.2, 83.2%, 53.3%, 0.06) 100%); border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid hsla(142.1, 76.2%, 36.3%, 0.2); transition: all 0.3s;" onmouseover="this.style.boxShadow='var(--card-shadow-lg)'" onmouseout="this.style.boxShadow='var(--card-shadow)'">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(236, 72, 153, 0.3);">
+            <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <h3 style="font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">AI Capabilities</h3>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 0.875rem; border-radius: 8px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateX(4px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.transform='translateX(0)'">
+            <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+              <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </div>
+            <div style="flex: 1;">
+              <p style="font-weight: 600; font-size: 0.9375rem; margin: 0 0 0.25rem 0; color: hsl(222.2, 84%, 4.9%);">Health Prediction</p>
+              <p style="font-size: 0.8125rem; color: var(--muted-foreground); margin: 0; line-height: 1.4;">Early illness detection</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 0.875rem; border-radius: 8px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateX(4px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.transform='translateX(0)'">
+            <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);">
+              <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div style="flex: 1;">
+              <p style="font-weight: 600; font-size: 0.9375rem; margin: 0 0 0.25rem 0; color: hsl(222.2, 84%, 4.9%);">Behavior Classification</p>
+              <p style="font-size: 0.8125rem; color: var(--muted-foreground); margin: 0; line-height: 1.4;">Grazing, resting, walking</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 0.875rem; border-radius: 8px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateX(4px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.transform='translateX(0)'">
+            <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);">
+              <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M3 6h18l-1.68 9.88A2 2 0 0117.36 17H6.64a2 2 0 01-1.96-1.12L3 6zm0 0l2-4h14l2 4M7 10l5 5 5-5"/></svg>
+            </div>
+            <div style="flex: 1;">
+              <p style="font-weight: 600; font-size: 0.9375rem; margin: 0 0 0.25rem 0; color: hsl(222.2, 84%, 4.9%);">Weight Estimation</p>
+              <p style="font-size: 0.8125rem; color: var(--muted-foreground); margin: 0; line-height: 1.4;">Non-invasive measurement</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 0.875rem; border-radius: 8px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateX(4px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.transform='translateX(0)'">
+            <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+              <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </div>
+            <div style="flex: 1;">
+              <p style="font-weight: 600; font-size: 0.9375rem; margin: 0 0 0.25rem 0; color: hsl(222.2, 84%, 4.9%);">Growth Forecasting</p>
+              <p style="font-size: 0.8125rem; color: var(--muted-foreground); margin: 0; line-height: 1.4;">Optimal sale timing</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); border: 1px solid var(--border); transition: all 0.3s;" onmouseover="this.style.boxShadow='var(--card-shadow-lg)'" onmouseout="this.style.boxShadow='var(--card-shadow)'">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="width: 2.5rem; height: 2.5rem; border-radius: 8px; background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);">
+            <svg class="icon" style="color: white;" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 style="font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: hsl(222.2, 84%, 4.9%);">Quick Actions</h3>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.625rem;">
+          <button class="btn btn-secondary" style="justify-content: flex-start; width: 100%; font-size: 0.875rem; padding: 0.75rem 1rem;">
+            <svg class="icon-sm" style="margin-right: 0.625rem; color: #8B5CF6;" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            Train New Model
+          </button>
+          <button class="btn btn-secondary" style="justify-content: flex-start; width: 100%; font-size: 0.875rem; padding: 0.75rem 1rem;">
+            <svg class="icon-sm" style="margin-right: 0.625rem; color: #3B82F6;" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            View All Predictions
+          </button>
+          
+          <button class="btn btn-secondary" style="justify-content: flex-start; width: 100%; font-size: 0.875rem; padding: 0.75rem 1rem;">
+            <svg class="icon-sm" style="margin-right: 0.625rem; color: #6B7280;" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Model Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

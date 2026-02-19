@@ -142,9 +142,80 @@ class Animal(models.Model):
         filename = f'qr_{self.tag_id}.png'
         self.qr_code.save(filename, File(buffer), save=False)
     
+    @property
+    def age_months(self):
+        from datetime import date
+        today = date.today()
+        return (today.year - self.birth_date.year) * 12 + today.month - self.birth_date.month
+
+
+class SystemSetting(models.Model):
+    """System-wide configuration settings"""
+    CATEGORY_CHOICES = [
+        ('alerts', 'Alert Settings'),
+        ('notifications', 'Notification Settings'),
+        ('thresholds', 'Threshold Settings'),
+        ('general', 'General Settings'),
+    ]
+    
+    SETTING_TYPE_CHOICES = [
+        ('boolean', 'Boolean'),
+        ('integer', 'Integer'),
+        ('decimal', 'Decimal'),
+        ('string', 'String'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    setting_key = models.CharField(max_length=100, unique=True, db_index=True, help_text="Unique key for the setting")
+    label = models.CharField(max_length=200, help_text="Display label for the setting")
+    description = models.TextField(blank=True, help_text="Detailed description of the setting")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
+    setting_type = models.CharField(max_length=20, choices=SETTING_TYPE_CHOICES, default='boolean')
+    
+    # Value fields - use the appropriate one based on setting_type
+    boolean_value = models.BooleanField(default=False)
+    integer_value = models.IntegerField(null=True, blank=True)
+    decimal_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    string_value = models.TextField(blank=True)
+    
+    is_enabled = models.BooleanField(default=True, help_text="Whether this setting is currently enabled")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'system_settings'
+        ordering = ['category', 'label']
+    
+    def __str__(self):
+        return f"{self.label} ({self.setting_key})"
+    
+    def get_value(self):
+        """Return the appropriate value based on setting_type"""
+        if self.setting_type == 'boolean':
+            return self.boolean_value
+        elif self.setting_type == 'integer':
+            return self.integer_value
+        elif self.setting_type == 'decimal':
+            return self.decimal_value
+        else:
+            return self.string_value
+    
+    def set_value(self, value):
+        """Set the appropriate value based on setting_type"""
+        if self.setting_type == 'boolean':
+            self.boolean_value = bool(value)
+        elif self.setting_type == 'integer':
+            self.integer_value = int(value)
+        elif self.setting_type == 'decimal':
+            from decimal import Decimal
+            self.decimal_value = Decimal(str(value))
+        else:
+            self.string_value = str(value)
+            
     def save(self, *args, **kwargs):
         """Override save to auto-generate QR code"""
         # Generate QR code if it doesn't exist
         if not self.qr_code:
             self.generate_qr_code()
         super().save(*args, **kwargs)
+

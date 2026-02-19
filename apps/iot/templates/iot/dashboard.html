@@ -1,0 +1,301 @@
+{% extends 'livestock/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Color Variables */
+  :root {
+    --iot-green: #22c55e;
+    --iot-green-dark: #16a34a;
+    --iot-orange: #f59e0b;
+    --iot-red: #ef4444;
+    --iot-blue: #3b82f6;
+    --iot-gray: #6b7280;
+    --iot-purple: #8b5cf6;
+  }
+  
+  /* Icon base styles */
+  .icon { 
+    width: 20px; 
+    height: 20px; 
+    stroke-width: 2; 
+    fill: none; 
+    stroke-linecap: round; 
+    stroke-linejoin: round;
+  }
+  .icon-sm { width: 18px; height: 18px; stroke-width: 2; }
+  .icon-lg { width: 32px; height: 32px; stroke-width: 2; }
+  
+  /* Icon color classes */
+  .icon-primary { stroke: var(--iot-green); }
+  .icon-success { stroke: var(--iot-green); }
+  .icon-accent { stroke: var(--iot-orange); }
+  .icon-destructive { stroke: var(--iot-red); }
+  .icon-muted { stroke: var(--iot-gray); }
+  .icon-blue { stroke: var(--iot-blue); }
+  .icon-purple { stroke: var(--iot-purple); }
+  .icon-white { stroke: white; }
+  
+  /* Icon container hover effects */
+  .icon-container {
+    transition: all 0.2s ease;
+  }
+  .icon-container:hover {
+    transform: scale(1.05);
+  }
+</style>
+{% endblock %}
+
+{% block title %}IoT Devices - Kisombwa Ranch{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+  <!-- Django Messages -->
+  {% if messages %}
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      {% for message in messages %}
+        <div style="padding: 0.875rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; {% if message.tags == 'success' %}background: hsl(142.1, 76.2%, 95%); color: hsl(142.1, 76.2%, 28%); border: 1px solid hsl(142.1, 76.2%, 85%);{% elif message.tags == 'error' %}background: hsl(0, 84.2%, 95%); color: hsl(0, 84.2%, 40%); border: 1px solid hsl(0, 84.2%, 85%);{% else %}background: hsl(210, 40%, 96.1%); color: hsl(222.2, 47%, 11%); border: 1px solid hsl(214.3, 31.8%, 91.4%);{% endif %}">
+          <svg class="icon-sm {% if message.tags == 'success' %}icon-success{% elif message.tags == 'error' %}icon-destructive{% else %}icon-blue{% endif %}" viewBox="0 0 24 24">
+            {% if message.tags == 'success' %}
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            {% elif message.tags == 'error' %}
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            {% else %}
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            {% endif %}
+          </svg>
+          <span style="font-size: 0.875rem; font-weight: 500;">{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Page Header -->
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+      <div>
+        <h1 style="font-family: Georgia, serif; font-size: 1.875rem; font-weight: 700; color: hsl(222.2, 84%, 4.9%);">IoT Devices</h1>
+        <p style="color: hsl(215.4, 16.3%, 46.9%); font-size: 0.875rem; margin-top: 0.25rem;">
+          Monitor and manage ESP32 smart collars and sensors
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <form method="post" action="{% url 'iot:sync_all' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; background: white; border: 1px solid #d1d5db; color: #374151; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);" onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#9ca3af'" onmouseout="this.style.background='white'; this.style.borderColor='#d1d5db'">
+            <svg style="width: 18px; height: 18px; stroke: #3b82f6; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+            Sync All
+          </button>
+        </form>
+        <a href="{% url 'iot:register_device' %}" style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; color: white; cursor: pointer; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <svg class="icon-sm icon-white" style="margin-right: 0.5rem;" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Register Device
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device Stats Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+    <!-- Total Devices -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsl(214.3, 31.8%, 91.4%);">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="icon-container" style="width: 4rem; height: 4rem; border-radius: 1rem; background: #dcfce7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 36px; height: 36px; stroke: #16a34a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Total Devices</p>
+          <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">{{ total_devices|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Online -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsl(214.3, 31.8%, 91.4%);">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="icon-container" style="width: 4rem; height: 4rem; border-radius: 1rem; background: #dcfce7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 36px; height: 36px; stroke: #16a34a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M12 20h.01"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Online</p>
+          <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">{{ active_devices|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offline -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsl(214.3, 31.8%, 91.4%);">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="icon-container" style="width: 4rem; height: 4rem; border-radius: 1rem; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 36px; height: 36px; stroke: #dc2626; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 2 22 22"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Offline</p>
+          <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">{{ inactive_devices|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Low Battery -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsl(214.3, 31.8%, 91.4%);">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="icon-container" style="width: 4rem; height: 4rem; border-radius: 1rem; background: #fef3c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 36px; height: 36px; stroke: #d97706; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+        </div>
+        <div>
+          <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Low Battery</p>
+          <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">{{ low_battery|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Network Health -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsl(214.3, 31.8%, 91.4%);">
+    <div style="margin-bottom: 1rem;">
+      <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: hsl(222.2, 84%, 4.9%);">Network Health</h2>
+      <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-top: 0.25rem;">Overall IoT network performance</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+          <span style="color: #6b7280;">Device Uptime</span>
+          <span style="font-weight: 500;">{{ device_uptime }}%</span>
+        </div>
+        <div style="width: 100%; height: 0.5rem; background: hsl(210, 40%, 96.1%); border-radius: 9999px; overflow: hidden;">
+          <div style="width: {{ device_uptime }}%; height: 100%; background: #22c55e; transition: width 0.3s;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+          <span style="color: #6b7280;">Data Sync Rate</span>
+          <span style="font-weight: 500;">{{ data_sync_rate }}%</span>
+        </div>
+        <div style="width: 100%; height: 0.5rem; background: hsl(210, 40%, 96.1%); border-radius: 9999px; overflow: hidden;">
+          <div style="width: {{ data_sync_rate }}%; height: 100%; background: #22c55e; transition: width 0.3s;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+          <span style="color: #6b7280;">Signal Quality</span>
+          <span style="font-weight: 500;">{{ signal_quality }}%</span>
+        </div>
+        <div style="width: 100%; height: 0.5rem; background: hsl(210, 40%, 96.1%); border-radius: 9999px; overflow: hidden;">
+          <div style="width: {{ signal_quality }}%; height: 100%; background: #22c55e; transition: width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+    {% for device in devices %}
+    <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid {% if device.status == 'offline' %}hsla(0, 84.2%, 60.2%, 0.3){% else %}hsl(214.3, 31.8%, 91.4%){% endif %}; transition: all 0.2s;" onmouseover="this.style.boxShadow='0 4px 6px -1px rgb(0 0 0 / 0.1)'" onmouseout="this.style.boxShadow='0 1px 3px 0 rgb(0 0 0 / 0.1)'">
+      <!-- Card Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="icon-container" style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background: {% if device.status == 'online' %}#dcfce7{% elif device.status == 'offline' %}#fee2e2{% else %}#f3f4f6{% endif %}; display: flex; align-items: center; justify-content: center;">
+            <svg class="icon {% if device.status == 'online' %}icon-success{% elif device.status == 'offline' %}icon-destructive{% else %}icon-muted{% endif %}" viewBox="0 0 24 24"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 600; font-family: monospace; margin: 0;">{{ device.device_id }}</h3>
+            <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">{% if device.assigned_to %}{{ device.assigned_to.name }} ({{ device.assigned_to.tag_id }}){% else %}Unassigned{% endif %}</p>
+          </div>
+        </div>
+        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; {% if device.status == 'online' %}background: #dcfce7; color: #16a34a; border: 1px solid #22c55e;{% elif device.status == 'offline' %}background: #fee2e2; color: #dc2626; border: 1px solid #ef4444;{% else %}background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db;{% endif %}">
+          {% if device.status == 'online' %}Online{% elif device.status == 'offline' %}Offline{% else %}{{ device.get_status_display }}{% endif %}
+        </span>
+      </div>
+
+      <!-- Device Metrics -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <!-- Battery -->
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg class="icon-sm {% if device.battery_level > 50 %}icon-success{% elif device.battery_level > 20 %}icon-accent{% else %}icon-destructive{% endif %}" viewBox="0 0 24 24"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+          <div>
+            <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Battery</p>
+            <p style="font-weight: 500; margin: 0; color: {% if device.battery_level > 50 %}#22c55e{% elif device.battery_level > 20 %}#f59e0b{% else %}#ef4444{% endif %};">{{ device.battery_level }}%</p>
+          </div>
+        </div>
+
+        <!-- Signal -->
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg class="icon-sm {% if device.signal_strength > 0 %}icon-success{% else %}icon-muted{% endif %}" viewBox="0 0 24 24"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+          <div>
+            <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Signal</p>
+            <p style="font-weight: 500; margin: 0;">{% if device.signal_strength > 0 %}{{ device.signal_strength }}%{% else %}—{% endif %}</p>
+          </div>
+        </div>
+
+        <!-- Temperature -->
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg class="icon-sm {% if device.last_temperature > 39.5 %}icon-accent{% elif device.last_temperature %}icon-success{% else %}icon-muted{% endif %}" viewBox="0 0 24 24"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
+          <div>
+            <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Body Temp</p>
+            <p style="font-weight: 500; margin: 0;">{% if device.last_temperature %}{{ device.last_temperature }}°C{% else %}—{% endif %}</p>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg class="icon-sm icon-blue" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <div>
+            <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Activity</p>
+            <p style="font-weight: 500; margin: 0;">{% if device.activity_level %}{{ device.activity_level }}{% else %}—{% endif %}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid hsl(214.3, 31.8%, 91.4%);">
+        <div style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: #6b7280;">
+          <svg class="icon icon-muted" style="width: 12px; height: 12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Last sync: {{ device.last_sync|timesince|default:"Never" }}
+        </div>
+        <button style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.875rem; background: transparent; border: none; color: #6b7280; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='hsl(210, 40%, 96.1%)'" onmouseout="this.style.background='transparent'">
+          <svg class="icon-sm icon-muted" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color: var(--muted-foreground); text-align: center; padding: 2rem; grid-column: 1 / -1;">No devices registered yet</p>
+    {% endfor %}
+  </div>
+
+  <!-- Device Alerts -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid hsla(37.7, 100%, 52.5%, 0.3);">
+    <div style="margin-bottom: 1rem;">
+      <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: hsl(222.2, 84%, 4.9%); display: flex; align-items: center; gap: 0.5rem;">
+        <svg class="icon icon-accent" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        Device Alerts
+      </h2>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% if offline_devices %}
+      {% for device in offline_devices %}
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 0.5rem; background: hsla(0, 84.2%, 60.2%, 0.1);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <svg class="icon icon-destructive" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 2 22 22"/></svg>
+          <div>
+            <p style="font-weight: 500; margin: 0;">{{ device.device_id }} went offline</p>
+            <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">Low battery ({{ device.battery_level }}%). {% if device.last_sync %}Last seen {{ device.last_sync|timesince }} ago.{% else %}Never seen.{% endif %}</p>
+          </div>
+        </div>
+        <button style="padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; background: white; border: 1px solid hsl(214.3, 31.8%, 91.4%); color: hsl(222.2, 84%, 4.9%); cursor: pointer;">Locate</button>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p style="color: var(--muted-foreground); text-align: center; padding: 1rem;">No device alerts at this time</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

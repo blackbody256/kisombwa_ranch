@@ -221,8 +221,8 @@
         
         /* Hero Banner */
         .hero-banner {
-            background: linear-gradient(135deg, rgba(22, 163, 74, 0.95) 0%, rgba(21, 128, 61, 0.95) 100%),
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><rect fill="%2316a34a" width="1200" height="400"/></svg>');
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.75) 0%, rgba(21, 128, 61, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80');
             background-size: cover;
             background-position: center;
             border-radius: 1.5rem;
@@ -230,6 +230,7 @@
             color: white;
             position: relative;
             overflow: hidden;
+            min-height: 200px;
         }
         
         .hero-banner::before {
@@ -239,9 +240,8 @@
             right: 0;
             width: 50%;
             height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="rgba(255,255,255,0.05)"/></svg>');
-            background-size: 200px;
-            opacity: 0.3;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 100%);
+            opacity: 0.5;
         }
         
         .hero-content {
@@ -574,6 +574,11 @@
             color: #ef4444;
         }
         
+        .badge-gray {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+        
         /* Container */
         .container-custom {
             padding: 2rem;
@@ -646,7 +651,7 @@
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'iot:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'iot' %}active{% endif %}">
                     <i class="bi bi-router"></i>
                     <span>IoT Devices</span>
                 </a>
@@ -658,19 +663,19 @@
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'analytics:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'analytics' %}active{% endif %}">
                     <i class="bi bi-bar-chart"></i>
                     <span>Analytics</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'ai_insights:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'ai_insights' %}active{% endif %}">
                     <i class="bi bi-lightbulb"></i>
                     <span>AI Insights</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'alerts:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'alerts' %}active{% endif %}">
                     <i class="bi bi-bell"></i>
                     <span>Alerts</span>
                 </a>
@@ -679,7 +684,7 @@
         
         <div style="position: absolute; bottom: 1rem; width: 100%; padding: 0 0.75rem;">
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'settings' %}" class="nav-link">
                     <i class="bi bi-gear"></i>
                     <span>Settings</span>
                 </a>
@@ -691,24 +696,30 @@
     <div class="main-content">
         <!-- Top Bar -->
         <div class="top-bar">
-            <div class="search-bar" style="position: relative;">
+            <form action="{% url 'animal_list' %}" method="get" class="search-bar" style="position: relative;">
                 <i class="bi bi-search search-icon"></i>
-                <input type="text" placeholder="Search animals, devices, alerts...">
-            </div>
+                <input type="text" name="q" placeholder="Search animals, devices, alerts..." value="{{ request.GET.q }}">
+            </form>
             
             <div class="top-bar-actions">
-                <div class="notification-bell">
+                <a href="{% url 'alerts:dashboard' %}" class="notification-bell" style="text-decoration: none; position: relative;">
                     <i class="bi bi-bell" style="font-size: 1.25rem; color: #6b7280; cursor: pointer;"></i>
-                    <span class="notification-badge">3</span>
-                </div>
+                    {% if unread_notifications > 0 %}
+                    <span class="notification-badge">{{ unread_notifications }}</span>
+                    {% endif %}
+                </a>
                 
                 <div class="user-profile">
                     <div class="user-info text-end">
-                        <p>Ranch Manager</p>
-                        <span>Kisombwa Ranch</span>
+                        <p>{{ user_role }}</p>
+                        <span>{{ ranch_name }}</span>
                     </div>
                     <div class="user-avatar">
+                        {% if user.is_authenticated %}
                         <i class="bi bi-person-fill"></i>
+                        {% else %}
+                        <i class="bi bi-person"></i>
+                        {% endif %}
                     </div>
                 </div>
             </div>

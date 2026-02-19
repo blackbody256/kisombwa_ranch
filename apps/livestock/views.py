@@ -21,6 +21,8 @@ def livestock_home(request):
     
     # ============ BASIC COUNTS ============
     total_animals = Animal.objects.filter(status='ACTIVE').count()
+    total_animals_all = Animal.objects.count()  # All animals regardless of status
+    quarantined_animals = Animal.objects.filter(status='QUARANTINE').count()
     total_males = Animal.objects.filter(status='ACTIVE', gender='M').count()
     total_females = Animal.objects.filter(status='ACTIVE', gender='F').count()
     
@@ -72,15 +74,31 @@ def livestock_home(request):
         health_growth = 0
     
     # ============ ACTIVE ALERTS ============
-    # High severity health issues in last 7 days
+    # Get active alerts from alerts app
+    from apps.alerts.models import Alert
+    
     seven_days_ago = today - timedelta(days=7)
     
-    active_alerts = HealthRecord.objects.filter(
+    active_alerts = Alert.objects.filter(
+        is_read=False,
+        created_at__gte=seven_days_ago
+    ).count()
+    
+    high_priority_alerts = Alert.objects.filter(
+        is_read=False,
+        severity__in=['HIGH', 'CRITICAL'],
+        created_at__gte=seven_days_ago
+    ).count()
+    
+    # Also count health-based alerts
+    health_alerts = HealthRecord.objects.filter(
         date__gte=seven_days_ago,
         severity__in=['HIGH', 'CRITICAL']
     ).count()
     
-    high_priority_alerts = HealthRecord.objects.filter(
+    # Combine both sources
+    active_alerts = active_alerts + health_alerts
+    high_priority_alerts = high_priority_alerts + HealthRecord.objects.filter(
         date__gte=seven_days_ago,
         severity='CRITICAL'
     ).count()
@@ -121,12 +139,41 @@ def livestock_home(request):
     ).values('animal').distinct().count()
     
     # ============ AVERAGE BODY TEMPERATURE ============
-    # Get most recent weight records for each animal (as proxy for health)
-    # In real system, this would come from IoT devices (Member 2's part)
-    # For now, we'll use a default value or calculate from health records
-    avg_body_temp = 38.4  # Normal cattle temp
-    temp_status = "Normal"
-    temp_percentage = 98  # Percentage within normal range
+    # Get most recent body temperature readings from IoT sensor data
+    from apps.iot.models import SensorData
+    
+    recent_sensor_data = SensorData.objects.filter(
+        timestamp__gte=thirty_days_ago,
+        body_temperature__isnull=False
+    ).order_by('-timestamp')
+    
+    if recent_sensor_data.exists():
+        # Calculate average from recent readings
+        avg_temp_value = recent_sensor_data.aggregate(avg_temp=Avg('body_temperature'))['avg_temp']
+        avg_body_temp = round(avg_temp_value, 1) if avg_temp_value else None
+        
+        # Determine status (normal cattle temp: 37.5-39.5°C)
+        if avg_body_temp:
+            if 37.5 <= avg_body_temp <= 39.5:
+                temp_status = "Normal"
+            elif avg_body_temp > 39.5:
+                temp_status = "High"
+            else:
+                temp_status = "Low"
+        else:
+            temp_status = "No Data"
+        
+        # Calculate percentage within normal range
+        temps_in_range = recent_sensor_data.filter(
+            body_temperature__gte=37.5,
+            body_temperature__lte=39.5
+        ).count()
+        temp_percentage = round((temps_in_range / recent_sensor_data.count()) * 100, 0)
+    else:
+        # No sensor data available
+        avg_body_temp = None
+        temp_status = "No Data"
+        temp_percentage = 0
     
     # ============ DAILY WEIGHT GAIN ============
     # Calculate average daily weight gain from weight records
@@ -157,8 +204,9 @@ def livestock_home(request):
         target_gain = 0.75
         weight_gain_percentage = round(((avg_weight_gain - target_gain) / target_gain) * 100, 0)
     else:
-        avg_weight_gain = 0.85  # Default/placeholder
-        weight_gain_percentage = 12
+        # No weight data available
+        avg_weight_gain = None
+        weight_gain_percentage = 0
     
     # ============ BREED DISTRIBUTION ============
     breed_distribution = Animal.objects.filter(status='ACTIVE').values('breed').annotate(
@@ -172,6 +220,8 @@ def livestock_home(request):
     context = {
         # Basic stats
         'total_animals': total_animals,
+        'total_animals_all': total_animals_all,
+        'quarantined_animals': quarantined_animals,
         'livestock_growth': livestock_growth,
         'total_males': total_males,
         'total_females': total_females,

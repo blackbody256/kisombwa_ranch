@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.iot',
     'apps.analytics',
     'apps.alerts',
+    'apps.ai_insights',
     
 ]
 AUTH_USER_MODEL = 'core.User'
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.global_context',
             ],
         },
     },
@@ -149,3 +151,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
+
+# Authentication settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'

@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Device, SensorData
+from django.utils import timezone
 from datetime import datetime
+from .models import Device, SensorData
 
 class SensorDataIngestSerializer(serializers.Serializer):
     """Serializer for incoming sensor data from ESP32"""
@@ -28,9 +29,9 @@ class SensorDataIngestSerializer(serializers.Serializer):
         # Parse timestamp (convert millis to datetime for demo)
         try:
             timestamp_ms = int(validated_data['timestamp'])
-            timestamp = datetime.fromtimestamp(timestamp_ms / 1000.0)
+            timestamp = timezone.make_aware(datetime.fromtimestamp(timestamp_ms / 1000.0))
         except:
-            timestamp = datetime.now()
+            timestamp = timezone.now()
         
         # Extract nested data
         gps_data = validated_data['gps']
